@@ -4,9 +4,29 @@
  * ------------------------------------
  */
 
-import {EditorConfig} from './configs';
-import {Blocks, Caret, Events, Listeners, Notifier, Sanitizer, Saver, Selection, Styles, Toolbar, InlineToolbar} from './api';
-import {OutputData} from "./data-formats/output-data";
+import {
+  EditorConfig,
+  I18nDictionary,
+  Dictionary,
+  DictValue,
+  I18nConfig,
+} from './configs';
+import {
+  Blocks,
+  Caret,
+  Events,
+  InlineToolbar,
+  Listeners,
+  Notifier,
+  Sanitizer,
+  Saver,
+  Selection,
+  Styles,
+  Toolbar,
+  Tooltip,
+  I18n,
+} from './api';
+import {OutputData} from './data-formats/output-data';
 
 /**
  * Interfaces used for development
@@ -16,7 +36,9 @@ export {
   BaseToolConstructable,
   InlineTool,
   InlineToolConstructable,
+  InlineToolConstructorOptions,
   BlockToolConstructable,
+  BlockToolConstructorOptions,
   BlockTool,
   BlockToolData,
   Tool,
@@ -34,8 +56,19 @@ export {
   FilePasteEventDetail,
 } from './tools';
 export {BlockTune, BlockTuneConstructable} from './block-tunes';
-export {EditorConfig, SanitizerConfig, PasteConfig} from './configs';
-export {OutputData} from './data-formats/output-data';
+export {
+  EditorConfig,
+  SanitizerConfig,
+  PasteConfig,
+  LogLevels,
+  ConversionConfig,
+  I18nDictionary,
+  Dictionary,
+  DictValue,
+  I18nConfig,
+} from './configs';
+export {OutputData, OutputBlockData} from './data-formats/output-data';
+export { BlockAPI } from './api'
 
 /**
  * We have a namespace API {@link ./api/index.d.ts} (APIMethods) but we can not use it as interface
@@ -53,6 +86,8 @@ export interface API {
   styles: Styles;
   toolbar: Toolbar;
   inlineToolbar: InlineToolbar;
+  tooltip: Tooltip;
+  i18n: I18n;
 }
 
 /**
@@ -82,37 +117,37 @@ declare class EditorJS {
   /**
    * @see Saver.save
    */
-  save(): Promise<OutputData>;
+  public save(): Promise<OutputData>;
 
   /**
    * @see Blocks.clear
    */
-  clear(): void;
+  public clear(): void;
 
   /**
    * @see Blocks.render
    */
-  render(data: OutputData): Promise<void>;
+  public render(data: OutputData): Promise<void>;
 
   /**
    * @see Caret.focus
    */
-  focus(atEnd?: boolean): boolean;
+  public focus(atEnd?: boolean): boolean;
 
   /**
    * @see Events.on
    */
-  on(eventName: string, callback: (data?: any) => void): void;
+  public on(eventName: string, callback: (data?: any) => void): void;
 
   /**
    * @see Events.off
    */
-  off(eventName: string, callback: (data?: any) => void): void;
+  public off(eventName: string, callback: (data?: any) => void): void;
 
   /**
    * @see Events.emit
    */
-  emit(eventName: string, data: any): void;
+  public emit(eventName: string, data: any): void;
 
   /**
    * Destroy Editor instance and related DOM elements

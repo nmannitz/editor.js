@@ -8,4 +8,7 @@ export * from './styles';
 export * from './caret';
 export * from './toolbar';
 export * from './notifier';
-export * from './inline-toolbar'
+export * from './tooltip';
+export * from './inline-toolbar';
+export * from './block';
+export * from './i18n';

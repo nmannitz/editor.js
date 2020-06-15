@@ -9,6 +9,7 @@ import Events from '../components/modules/events';
 import Shortcuts from '../components/modules/shortcuts';
 import Paste from '../components/modules/paste';
 import Notifier from '../components/modules/notifier';
+import Tooltip from '../components/modules/tooltip';
 import DragNDrop from '../components/modules/dragNDrop';
 import ModificationsObserver from '../components/modules/modificationsObserver';
 import Renderer from '../components/modules/renderer';
@@ -33,6 +34,8 @@ import RectangleSelection from '../components/modules/RectangleSelection';
 import InlineToolbarAPI from '../components/modules/api/inlineToolbar';
 import CrossBlockSelection from '../components/modules/crossBlockSelection';
 import ConversionToolbar from '../components/modules/toolbar/conversion';
+import TooltipAPI from '../components/modules/api/tooltip';
+import I18nAPI from '../components/modules/api/i18n';
 
 export interface EditorModules {
   UI: UI;
@@ -57,6 +60,7 @@ export interface EditorModules {
   Caret: Caret;
   Saver: Saver;
   Notifier: Notifier;
+  Tooltip: Tooltip;
   BlockManager: BlockManager;
   BlocksAPI: BlocksAPI;
   CaretAPI: CaretAPI;
@@ -70,4 +74,6 @@ export interface EditorModules {
   InlineToolbarAPI: InlineToolbarAPI;
   CrossBlockSelection: CrossBlockSelection;
   NotifierAPI: NotifierAPI;
+  TooltipAPI: TooltipAPI;
+  I18nAPI: I18nAPI;
 }

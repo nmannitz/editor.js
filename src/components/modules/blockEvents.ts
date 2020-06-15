@@ -2,14 +2,17 @@
  * Contains keyboard and mouse events binded on each Block by Block Manager
  */
 import Module from '../__module';
-import _ from '../utils';
+import * as _ from '../utils';
 import SelectionUtils from '../selection';
 import Flipper from '../flipper';
 
+/**
+ *
+ */
 export default class BlockEvents extends Module {
-
   /**
    * All keydowns on Block
+   *
    * @param {KeyboardEvent} event - keydown
    */
   public keydown(event: KeyboardEvent): void {
@@ -43,18 +46,12 @@ export default class BlockEvents extends Module {
       case _.keyCodes.TAB:
         this.tabPressed(event);
         break;
-
-      case _.keyCodes.ESC:
-        this.escapePressed(event);
-        break;
-      default:
-        this.defaultHandler();
-        break;
     }
   }
 
   /**
    * Fires on keydown before event processing
+   *
    * @param {KeyboardEvent} event - keydown
    */
   public beforeKeydownProcessing(event: KeyboardEvent): void {
@@ -77,6 +74,7 @@ export default class BlockEvents extends Module {
 
       /**
        * Allow to use shortcuts with selected blocks
+       *
        * @type {boolean}
        */
       const isShortcut = event.ctrlKey || event.metaKey || event.altKey || event.shiftKey;
@@ -92,9 +90,10 @@ export default class BlockEvents extends Module {
    * Key up on Block:
    * - shows Inline Toolbar if something selected
    * - shows conversion toolbar with 85% of block selection
+   *
+   * @param {KeyboardEvent} event - keyup event
    */
   public keyup(event): void {
-
     /**
      * If shift key was pressed some special shortcut is used (eg. cross block selection via shift + arrows)
      */
@@ -102,69 +101,16 @@ export default class BlockEvents extends Module {
       return;
     }
 
-    const { InlineToolbar, ConversionToolbar, UI, BlockManager, BlockSettings } = this.Editor;
-    const block = BlockManager.getBlock(event.target);
-
-    /**
-     * Conversion Toolbar will be opened when user selects 85% of plugins content
-     * that why we must with the length of pluginsContent
-     */
-    if (SelectionUtils.almostAllSelected(block.pluginsContent.textContent)) {
-      InlineToolbar.close();
-      BlockSettings.close();
-      ConversionToolbar.tryToShow(block);
-    } else {
-      ConversionToolbar.close();
-      InlineToolbar.tryToShow(true);
-    }
-
     /**
      * Check if editor is empty on each keyup and add special css class to wrapper
      */
-    UI.checkEmptiness();
-  }
-
-  /**
-   * Mouse up on Block:
-   * - shows Inline Toolbar if something selected
-   */
-  public mouseUp(event): void {
-    const { InlineToolbar, ConversionToolbar, BlockManager, BlockSelection } = this.Editor;
-    const block = BlockManager.getBlock(event.target);
-
-    /**
-     * Timeout uses to wait if selection will cleared after mouse up (regular click on block)
-     */
-    _.delay(() => {
-      /**
-       * 1) selected 85% of block - open Conversion Toolbar
-       * 2) select something inside block - open Inline Toolbar
-       * 3) nothing selected - close Toolbars
-       */
-      if (SelectionUtils.almostAllSelected(block.pluginsContent.textContent)) {
-        InlineToolbar.close();
-        ConversionToolbar.tryToShow(block);
-      } else if (!SelectionUtils.isCollapsed) {
-        InlineToolbar.tryToShow();
-        ConversionToolbar.close();
-      } else {
-        InlineToolbar.close();
-
-        /**
-         * Don't close Conversion toolbar when Rectangle Selection ended with one block selected
-         * @see RectangleSelection#endSelection
-         */
-        if (BlockSelection.selectedBlocks.length !== 1) {
-          ConversionToolbar.close();
-        }
-      }
-    }, 30)();
+    this.Editor.UI.checkEmptiness();
   }
 
   /**
    * Set up mouse selection handlers
    *
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event - mouse down event
    */
   public mouseDown(event: MouseEvent): void {
     /**
@@ -178,7 +124,8 @@ export default class BlockEvents extends Module {
 
   /**
    * Open Toolbox to leaf Tools
-   * @param {KeyboardEvent} event
+   *
+   * @param {KeyboardEvent} event - tab keydown event
    */
   public tabPressed(event): void {
     /**
@@ -208,36 +155,11 @@ export default class BlockEvents extends Module {
   }
 
   /**
-   * Escape pressed
-   * If some of Toolbar components are opened, then close it otherwise close Toolbar
-   *
-   * @param {Event} event
-   */
-  public escapePressed(event): void {
-    /**
-     * Clear blocks selection by ESC
-     */
-    this.Editor.BlockSelection.clearSelection(event);
-
-    if (this.Editor.Toolbox.opened) {
-      this.Editor.Toolbox.close();
-    } else if (this.Editor.BlockSettings.opened) {
-      this.Editor.BlockSettings.close();
-    } else if (this.Editor.InlineToolbar.opened) {
-      this.Editor.InlineToolbar.close();
-    } else if (this.Editor.ConversionToolbar.opened) {
-      this.Editor.ConversionToolbar.close();
-    } else {
-      this.Editor.Toolbar.close();
-    }
-  }
-
-  /**
    * Add drop target styles
    *
-   * @param {DragEvent} e
+   * @param {DragEvent} e - drag over event
    */
-  public dragOver(e: DragEvent) {
+  public dragOver(e: DragEvent): void {
     const block = this.Editor.BlockManager.getBlockByChildNode(e.target as Node);
 
     block.dropTarget = true;
@@ -246,9 +168,9 @@ export default class BlockEvents extends Module {
   /**
    * Remove drop target style
    *
-   * @param {DragEvent} e
+   * @param {DragEvent} e - drag leave event
    */
-  public dragLeave(e: DragEvent) {
+  public dragLeave(e: DragEvent): void {
     const block = this.Editor.BlockManager.getBlockByChildNode(e.target as Node);
 
     block.dropTarget = false;
@@ -258,47 +180,35 @@ export default class BlockEvents extends Module {
    * Copying selected blocks
    * Before putting to the clipboard we sanitize all blocks and then copy to the clipboard
    *
-   * @param event
+   * @param {ClipboardEvent} event - clipboard event
    */
-  public handleCommandC(event): void {
+  public handleCommandC(event: ClipboardEvent): void {
     const { BlockSelection } = this.Editor;
 
     if (!BlockSelection.anyBlockSelected) {
       return;
     }
 
-    /**
-     * Prevent default copy
-     * Remove "decline sound" on macOS
-     */
-    event.preventDefault();
-
     // Copy Selected Blocks
-    BlockSelection.copySelectedBlocks();
+    BlockSelection.copySelectedBlocks(event);
   }
 
   /**
    * Copy and Delete selected Blocks
-   * @param event
+   *
+   * @param {ClipboardEvent} event - clipboard event
    */
-  public handleCommandX(event): void {
+  public handleCommandX(event: ClipboardEvent): void {
     const { BlockSelection, BlockManager, Caret } = this.Editor;
 
     if (!BlockSelection.anyBlockSelected) {
       return;
     }
 
-    /**
-     * Copy Blocks before removing
-     *
-     * Prevent default copy
-     * Remove "decline sound" on macOS
-     */
-    event.preventDefault();
-
-    BlockSelection.copySelectedBlocks();
+    BlockSelection.copySelectedBlocks(event);
 
     const selectionPositionIndex = BlockManager.removeSelectedBlocks();
+
     Caret.setToBlock(BlockManager.insertInitialBlockAtIndex(selectionPositionIndex, true), Caret.positions.START);
 
     /** Clear selection */
@@ -307,6 +217,7 @@ export default class BlockEvents extends Module {
 
   /**
    * ENTER pressed on block
+   *
    * @param {KeyboardEvent} event - keydown
    */
   private enter(event: KeyboardEvent): void {
@@ -324,8 +235,9 @@ export default class BlockEvents extends Module {
 
     /**
      * Opened Toolbars uses Flipper with own Enter handling
+     * Allow split block when no one button in Flipper is focused
      */
-    if (UI.someToolbarOpened) {
+    if (UI.someToolbarOpened && UI.someFlipperButtonFocused) {
       return;
     }
 
@@ -373,6 +285,7 @@ export default class BlockEvents extends Module {
 
   /**
    * Handle backspace keydown on Block
+   *
    * @param {KeyboardEvent} event - keydown
    */
   private backspace(event: KeyboardEvent): void {
@@ -383,7 +296,7 @@ export default class BlockEvents extends Module {
     /**
      * Check if Block should be removed by current Backspace keydown
      */
-    if (currentBlock.selected || currentBlock.isEmpty && currentBlock.currentInput === currentBlock.firstInput) {
+    if (currentBlock.selected || (currentBlock.isEmpty && currentBlock.currentInput === currentBlock.firstInput)) {
       event.preventDefault();
 
       const index = BlockManager.currentBlockIndex;
@@ -398,7 +311,7 @@ export default class BlockEvents extends Module {
 
       Caret.setToBlock(
         BlockManager.currentBlock,
-        index ? Caret.positions.END : Caret.positions.START,
+        index ? Caret.positions.END : Caret.positions.START
       );
 
       /** Close Toolbar */
@@ -406,6 +319,7 @@ export default class BlockEvents extends Module {
 
       /** Clear selection */
       BlockSelection.clearSelection(event);
+
       return;
     }
 
@@ -420,7 +334,10 @@ export default class BlockEvents extends Module {
     }
 
     const isFirstBlock = BlockManager.currentBlockIndex === 0;
-    const canMergeBlocks = Caret.isAtStart && currentBlock.currentInput === currentBlock.firstInput && !isFirstBlock;
+    const canMergeBlocks = Caret.isAtStart &&
+      SelectionUtils.isCollapsed &&
+      currentBlock.currentInput === currentBlock.firstInput &&
+      !isFirstBlock;
 
     if (canMergeBlocks) {
       /**
@@ -438,7 +355,7 @@ export default class BlockEvents extends Module {
   /**
    * Merge current and previous Blocks if they have the same type
    */
-  private mergeBlocks() {
+  private mergeBlocks(): void {
     const { BlockManager, Caret, Toolbar } = this.Editor;
     const targetBlock = BlockManager.previousBlock;
     const blockToMerge = BlockManager.currentBlock;
@@ -457,6 +374,7 @@ export default class BlockEvents extends Module {
 
         Caret.setToBlock(BlockManager.currentBlock);
         Toolbar.close();
+
         return;
       }
 
@@ -469,7 +387,7 @@ export default class BlockEvents extends Module {
 
     Caret.createShadow(targetBlock.pluginsContent);
     BlockManager.mergeBlocks(targetBlock, blockToMerge)
-      .then( () => {
+      .then(() => {
         /** Restore caret position after merge */
         Caret.restoreCaret(targetBlock.pluginsContent as HTMLElement);
         targetBlock.pluginsContent.normalize();
@@ -479,13 +397,18 @@ export default class BlockEvents extends Module {
 
   /**
    * Handle right and down keyboard keys
+   *
+   * @param {KeyboardEvent} event - keyboard event
    */
   private arrowRightAndDown(event: KeyboardEvent): void {
+    const isFlipperCombination = Flipper.usedKeys.includes(event.keyCode) &&
+      (!event.shiftKey || event.keyCode === _.keyCodes.TAB);
+
     /**
      * Arrows might be handled on toolbars by flipper
      * Check for Flipper.usedKeys to allow navigate by DOWN and disallow by RIGHT
      */
-    if (this.Editor.UI.someToolbarOpened && Flipper.usedKeys.includes(event.keyCode)) {
+    if (this.Editor.UI.someToolbarOpened && isFlipperCombination) {
       return;
     }
 
@@ -499,6 +422,7 @@ export default class BlockEvents extends Module {
 
     if (event.shiftKey && event.keyCode === _.keyCodes.DOWN && shouldEnableCBS) {
       this.Editor.CrossBlockSelection.toggleBlockSelectedState();
+
       return;
     }
 
@@ -527,14 +451,20 @@ export default class BlockEvents extends Module {
 
   /**
    * Handle left and up keyboard keys
+   *
+   * @param {KeyboardEvent} event - keyboard event
    */
   private arrowLeftAndUp(event: KeyboardEvent): void {
     /**
      * Arrows might be handled on toolbars by flipper
      * Check for Flipper.usedKeys to allow navigate by UP and disallow by LEFT
      */
-    if (this.Editor.UI.someToolbarOpened && Flipper.usedKeys.includes(event.keyCode)) {
-      return;
+    if (this.Editor.UI.someToolbarOpened) {
+      if (Flipper.usedKeys.includes(event.keyCode) && (!event.shiftKey || event.keyCode === _.keyCodes.TAB)) {
+        return;
+      }
+
+      this.Editor.UI.closeAllToolbars();
     }
 
     /**
@@ -547,6 +477,7 @@ export default class BlockEvents extends Module {
 
     if (event.shiftKey && event.keyCode === _.keyCodes.UP && shouldEnableCBS) {
       this.Editor.CrossBlockSelection.toggleBlockSelectedState(false);
+
       return;
     }
 
@@ -574,19 +505,16 @@ export default class BlockEvents extends Module {
   }
 
   /**
-   * Default keydown handler
-   */
-  private defaultHandler(): void {}
-
-  /**
    * Cases when we need to close Toolbar
+   *
+   * @param {KeyboardEvent} event - keyboard event
    */
-  private needToolbarClosing(event) {
+  private needToolbarClosing(event: KeyboardEvent): boolean {
     const toolboxItemSelected = (event.keyCode === _.keyCodes.ENTER && this.Editor.Toolbox.opened),
-      blockSettingsItemSelected = (event.keyCode === _.keyCodes.ENTER && this.Editor.BlockSettings.opened),
-      inlineToolbarItemSelected = (event.keyCode === _.keyCodes.ENTER && this.Editor.InlineToolbar.opened),
-      conversionToolbarItemSelected = (event.keyCode === _.keyCodes.ENTER && this.Editor.ConversionToolbar.opened),
-      flippingToolbarItems = event.keyCode === _.keyCodes.TAB;
+        blockSettingsItemSelected = (event.keyCode === _.keyCodes.ENTER && this.Editor.BlockSettings.opened),
+        inlineToolbarItemSelected = (event.keyCode === _.keyCodes.ENTER && this.Editor.InlineToolbar.opened),
+        conversionToolbarItemSelected = (event.keyCode === _.keyCodes.ENTER && this.Editor.ConversionToolbar.opened),
+        flippingToolbarItems = event.keyCode === _.keyCodes.TAB;
 
     /**
      * Do not close Toolbar in cases:
@@ -594,12 +522,12 @@ export default class BlockEvents extends Module {
      * 2. When Toolbar is opened and Tab leafs its Tools
      * 3. When Toolbar's component is opened and some its item selected
      */
-    return !(event.shiftKey
-      || flippingToolbarItems
-      || toolboxItemSelected
-      || blockSettingsItemSelected
-      || inlineToolbarItemSelected
-      || conversionToolbarItemSelected
+    return !(event.shiftKey ||
+      flippingToolbarItems ||
+      toolboxItemSelected ||
+      blockSettingsItemSelected ||
+      inlineToolbarItemSelected ||
+      conversionToolbarItemSelected
     );
   }
 
@@ -608,7 +536,7 @@ export default class BlockEvents extends Module {
    */
   private activateToolbox(): void {
     if (!this.Editor.Toolbar.opened) {
-      this.Editor.Toolbar.open(false , false);
+      this.Editor.Toolbar.open(false, false);
       this.Editor.Toolbar.plusButton.show();
     }
 

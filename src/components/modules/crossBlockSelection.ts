@@ -1,8 +1,11 @@
 import Module from '../__module';
 import Block from '../block';
 import SelectionUtils from '../selection';
-import _ from '../utils';
+import * as _ from '../utils';
 
+/**
+ *
+ */
 export default class CrossBlockSelection extends Module {
   /**
    * Block where selection is started
@@ -24,7 +27,7 @@ export default class CrossBlockSelection extends Module {
       return;
     }
 
-    const {BlockManager, UI, Listeners} = this.Editor;
+    const { BlockManager, Listeners } = this.Editor;
 
     this.firstSelectedBlock = BlockManager.getBlock(event.target as HTMLElement);
     this.lastSelectedBlock = this.firstSelectedBlock;
@@ -34,13 +37,21 @@ export default class CrossBlockSelection extends Module {
   }
 
   /**
+   * return boolean is cross block selection started
+   */
+  public get isCrossBlockSelectionStarted(): boolean {
+    return !!this.firstSelectedBlock &&
+      !!this.lastSelectedBlock;
+  }
+
+  /**
    * Change selection state of the next Block
    * Used for CBS via Shift + arrow keys
    *
    * @param {boolean} next - if true, toggle next block. Previous otherwise
    */
-  public toggleBlockSelectedState(next: boolean = true): void {
-    const {BlockManager} = this.Editor;
+  public toggleBlockSelectedState(next = true): void {
+    const { BlockManager } = this.Editor;
 
     if (!this.lastSelectedBlock) {
       this.lastSelectedBlock = this.firstSelectedBlock = BlockManager.currentBlock;
@@ -65,6 +76,9 @@ export default class CrossBlockSelection extends Module {
     }
 
     this.lastSelectedBlock = nextBlock;
+
+    /** close InlineToolbar when Blocks selected */
+    this.Editor.InlineToolbar.close();
   }
 
   /**
@@ -72,8 +86,8 @@ export default class CrossBlockSelection extends Module {
    *
    * @param {Event} reason - event caused clear of selection
    */
-  public clear(reason?: Event) {
-    const {BlockManager, BlockSelection, Caret} = this.Editor;
+  public clear(reason?: Event): void {
+    const { BlockManager, BlockSelection, Caret } = this.Editor;
     const fIndex = BlockManager.blocks.indexOf(this.firstSelectedBlock);
     const lIndex = BlockManager.blocks.indexOf(this.lastSelectedBlock);
 
@@ -110,8 +124,8 @@ export default class CrossBlockSelection extends Module {
    * Mouse up event handler.
    * Removes the listeners
    */
-  private onMouseUp  = (): void => {
-    const {Listeners} = this.Editor;
+  private onMouseUp = (): void => {
+    const { Listeners } = this.Editor;
 
     Listeners.off(document, 'mouseover', this.onMouseOver);
     Listeners.off(document, 'mouseup', this.onMouseUp);
@@ -121,10 +135,10 @@ export default class CrossBlockSelection extends Module {
    * Mouse over event handler
    * Gets target and related blocks and change selected state for blocks in between
    *
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event - mouse over event
    */
   private onMouseOver = (event: MouseEvent): void => {
-    const {BlockManager} = this.Editor;
+    const { BlockManager } = this.Editor;
 
     const relatedBlock = BlockManager.getBlockByChildNode(event.relatedTarget as Node) || this.lastSelectedBlock;
     const targetBlock = BlockManager.getBlockByChildNode(event.target as Node);
@@ -142,14 +156,18 @@ export default class CrossBlockSelection extends Module {
 
       relatedBlock.selected = true;
       targetBlock.selected = true;
+
       return;
     }
 
     if (targetBlock === this.firstSelectedBlock) {
       relatedBlock.selected = false;
       targetBlock.selected = false;
+
       return;
     }
+
+    this.Editor.InlineToolbar.close();
 
     this.toggleBlocksSelectedState(relatedBlock, targetBlock);
     this.lastSelectedBlock = targetBlock;
@@ -158,11 +176,11 @@ export default class CrossBlockSelection extends Module {
   /**
    * Change blocks selection state between passed two blocks.
    *
-   * @param {Block} firstBlock
-   * @param {Block} lastBlock
+   * @param {Block} firstBlock - first block in range
+   * @param {Block} lastBlock - last block in range
    */
   private toggleBlocksSelectedState(firstBlock: Block, lastBlock: Block): void {
-    const {BlockManager} = this.Editor;
+    const { BlockManager } = this.Editor;
     const fIndex = BlockManager.blocks.indexOf(firstBlock);
     const lIndex = BlockManager.blocks.indexOf(lastBlock);
 

@@ -108,10 +108,7 @@
         /**
          * Or pass class directly without any configuration
          */
-        image: {
-          class: SimpleImage,
-          inlineToolbar: ['link'],
-        },
+        image: SimpleImage,
 
         list: {
           class: List,
@@ -265,7 +262,7 @@
           {
             type: 'image',
             data: {
-              url: 'https://codex.so/upload/redactor_images/o_e48549d1855c7fc1807308dd14990126.jpg',
+              url: 'assets/codex2x.png',
               caption: '',
               stretched: false,
               withBorder: true,
@@ -279,8 +276,9 @@
       },
       onChange: function() {
         console.log('something changed');
-      }
+      },
     });
+
 
     /**
      * Saving example
